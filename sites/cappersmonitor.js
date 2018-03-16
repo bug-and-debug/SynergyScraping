@@ -6,6 +6,7 @@ const request = require('request')
 const curl = require('curlrequest');
 const tableScraper = require('table-scraper')
 const _ = require('lodash')
+const util = require('./../manager/util')
 
 const OPTIONS = {
       items: {
@@ -70,12 +71,12 @@ class CappersMonitor {
                       home: home,
                       away: away,
                       type: type,
-                      hc_spread: hc_spread,
-                      hc_ou: hc_ou,
+                      hc_spread: util.safeToFloat(hc_spread),
+                      hc_ou: util.safeToFloat(hc_ou),
                       h_spread: h_spread,
                       h_ou: h_ou,
-                      units: units,
-                      price: price
+                      units: util.safeToInt(units),
+                      price: util.safeToFloat(price)
                     }
             })
 

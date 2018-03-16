@@ -7,6 +7,7 @@ const curl = require('curlrequest');
 const tableScraper = require('table-scraper')
 const _ = require('lodash')
 const stringSimilarity = require('string-similarity')
+const util = require('./../manager/util')
 
 const OPTIONS = {
     LEVEL1: {
@@ -63,7 +64,7 @@ const OPTIONS = {
             },
             price: {
               selector: "td > span > strong",
-              convert: x => x.substring(1, x.length)
+              convert: x => util.safeToFloat(x.substring(1, x.length))
             },
             time: {
               selector: "td > em",

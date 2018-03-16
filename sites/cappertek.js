@@ -6,6 +6,7 @@ const request = require('request')
 const curl = require('curlrequest');
 const tableScraper = require('table-scraper')
 const _ = require('lodash')
+const util = require('./../manager/util')
 
 const OPTIONS = {
     LEVEL1: {
@@ -172,6 +173,7 @@ class Cappertek {
         })
 
         let picks = []
+
         data.forEach(game => {
           game['picks'].forEach(pick => {
             picks.push({
@@ -180,13 +182,13 @@ class Cappertek {
               sport: platform,
               away: game['home_name'],
               home: game['away_name'],
-              hc_spread: game['hc_spread'],
-              hc_ou: game['hc_ou'],
+              hc_spread: util.safeToFloat(game['hc_spread']),
+              hc_ou: util.safeToFloat(game['hc_ou']),
               type: pick['type'],
               h_spread: pick['h_spread'],
               h_ou: pick['h_ou'],
-              units: pick['units'],
-              price: pick['price']
+              units: util.safeToInt(pick['units']),
+              price: util.safeToFloat(pick['price'])
             })
           })
         })
