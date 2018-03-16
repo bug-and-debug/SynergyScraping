@@ -173,9 +173,9 @@ class VegasInsider {
           }
 
           if (isNaN(ou))
-            ou = ''
+            ou = 0
           if (isNaN(spread))
-            spread = ''
+            spread = 0
 
           if (match['time'].endsWith('Game Time')) { //game is not started yet
             result.push({
