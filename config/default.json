@@ -5,7 +5,7 @@
   "db": {
       "host": "localhost",
       "user": "root",
-      "password":"star12345fff",
+      "password":"star12345",
       "database": "synergy",
       "port": 3306
   }
