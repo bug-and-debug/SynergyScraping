@@ -1,0 +1,37 @@
+{
+  "name": "timesites",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "nodemon node app.js"
+  },
+  "dependencies": {
+    "async": "^2.6.0",
+    "async-series": "0.0.1",
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "~1.18.2",
+    "cheerio": "^1.0.0-rc.2",
+    "cookie-parser": "~1.4.3",
+    "curlrequest": "^1.0.1",
+    "debug": "^3.1.0",
+    "dotenv": "^4.0.0",
+    "express": "^4.16.2",
+    "express-mysql-session": "^1.2.3",
+    "express-partial": "^0.1.0",
+    "express-session": "^1.15.6",
+    "lodash": "^4.17.5",
+    "morgan": "~1.9.0",
+    "mysql": "^2.15.0",
+    "node-cron": "^1.2.1",
+    "promise-mysql": "^3.2.1",
+    "request": "^2.83.0",
+    "scrape-it": "^5.0.2",
+    "scraperjs": "^1.2.0",
+    "sequelize": "^4.32.2",
+    "string-similarity": "^1.2.0",
+    "table-scraper": "^0.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.14.11"
+  }
+}
