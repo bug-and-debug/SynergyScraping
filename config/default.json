@@ -1,0 +1,12 @@
+{
+  "cron": {
+    "interval": 900000
+  },
+  "db": {
+      "host": "localhost",
+      "user": "root",
+      "password":"",
+      "database": "synergy",
+      "port": 3306
+  }
+}

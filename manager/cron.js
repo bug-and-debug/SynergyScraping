@@ -6,6 +6,7 @@ const sportsinvestorcentral = require('./../sites/sportsinvestorcentral')
 const cappersmonitor = require('./../sites/cappersmonitor')
 const nodeCron = require('node-cron')
 const stringSimilarity = require('string-similarity')
+const config = require('config')
 
 const start = function() {
    setInterval(async function(){
@@ -66,7 +67,7 @@ const start = function() {
      await updatePicks(today, picks)
 
 
-   }, 600000)
+   }, config.get('cron.interval'))
 }
 
 /*<<<<<<<<<<<<<<<<<<<<<< SI >>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
