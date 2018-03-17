@@ -187,9 +187,9 @@ class SportsInvestorCentral {
           }
         }
 
-        pick['hc_spread'] = util.parseFloat(hc_spread)
+        pick['hc_spread'] = util.safeToFloat(hc_spread)
         pick['h_spread'] = h_spread.toUpperCase()
-        pick['hc_ou'] = util.parseFloat(hc_ou)
+        pick['hc_ou'] = util.safeToFloat(hc_ou)
         pick['h_ou'] = h_ou
         pick['site'] = 'sportsinvestorcentral.com'
         delete pick['card']
