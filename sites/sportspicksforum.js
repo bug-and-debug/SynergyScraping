@@ -6,6 +6,8 @@ const request = require('request')
 const curl = require('curlrequest');
 const tableScraper = require('table-scraper')
 const _ = require('lodash')
+const stringSimilarity = require('string-similarity')
+const util = require('./../manager/util')
 
 const OPTIONS = {
     LEVEL1: {
@@ -13,103 +15,115 @@ const OPTIONS = {
         listItem: "#content > table > tr",
         data: {
           name: "td:nth-child(1).t-t > a",
-          units: "td:nth-child(2).t-t",
-          win: "td:nth-child(3).t-t",
-          lose: "td:nth-child(4).t-t",
-          p: "td:nth-child(5).t-t",
-          picks_prices: {
-            listItem: ".t-tr > span"
-          },
-          picks_teams: {
-            listItem: ".t-tr > strong > a"
-          },
-          picks_times: {
-            listItem: ".t-tr > em"
+          picks: {
+            listItem: ".t-tr > span[style='color:#666666;']",
+            data: {
+              home: {
+                selector: "strong > a",
+                convert: x => x.split('@')[1].trim()
+              },
+              away: {
+                selector: "strong > a",
+                convert: x => x.split('@')[0].trim()
+              },
+              card: {
+                selector: "strong > a",
+                attr: "href"
+              },
+              type: {
+                selector: "em",
+                convert: x => {
+                  if (x.indexOf('Spread Line') >= 0)
+                    return 'SPREAD'
+                  else
+                    return 'OU'
+                }
+              }
+            }
           }
         }
       }
     },
     LEVEL2: {
-        team1_name: {
-          selector: "td[width='47%'] > table > tr > td > font > a",
-          eq: 0
-        },
-        team1_score: {
-          selector: "td[width='47%'] > table > tr > td > font > b",
-          eq: 0
-        },
-        team1_moneyline: {
-          selector: "tr:nth-child(1) > td[width='18%']:nth-child(2) > div > font"
-        },
-        team1_spread: {
-          selector: "td[width='17%'] > div > font",
-          eq: 0
-        },
-        team1_total: {
-          selector: "tr:nth-child(1) > td[width='18%']:nth-child(4) > div > font"
-        },
-        team2_name: {
-          selector: "td[width='47%'] > table > tr > td > font > a",
-          eq: 1
-        },
-        team2_score: {
-          selector: "td[width='47%'] > table > tr > td > font > b",
-          eq: 1
-        },
-        team2_moneyline: {
-          selector: "tr:nth-child(2) > td[width='18%']:nth-child(2) > div > font"
-        },
-        team2_spread: {
-          selector: "td[width='17%'] > div > font",
-          eq: 1
-        },
-        team2_total: {
-          selector: "tr:nth-child(2) > td[width='18%']:nth-child(4) > div > font"
-        }
-        ,
-        picks: {
-          listItem: "table[width=969] > tr > td > table[cellpadding=0]:nth-child(3) > tr > td > table[cellpadding=8] > tr",
-          data: {
-            provider: {
-              selector: "td > div:nth-child(1) > a > b > font"
-            }
-          }
+        hc_data: {
+          selector: "td[colspan=3] > font[size=4]"
         }
     }
   }
 
 class SportsPicksForum {
-    static scrape(options) {
+    static async scrape(options) {
+      let platform = options['platform'].toUpperCase()
       let base_url = 'https://www.sportspicksforum.com'
-      let url = 'https://www.sportspicksforum.com/buy-picks.php'
+      let url = 'https://www.sportspicksforum.com/buy-picks.php?sport=' + platform
 
-      return scrapeIt(url, OPTIONS['LEVEL1']).then(({ data, response }) => {
-        data['handicappers'] = data['handicappers'].slice(1)
-        data['handicappers'].forEach(handicapper => {
-          _.remove(handicapper['picks_prices'], (item, index) => index % 2 == 1)
+      return scrapeIt(url, OPTIONS['LEVEL1']).then(async ({ data, response }) => {
+        data = data['handicappers'].slice(1)
+        let picks = []
+        data.forEach(handicapper => {
+          handicapper['picks'].forEach(pick => {
+            picks.push(Object.assign(pick, {handicapper: handicapper['name']}))
+          })
         })
 
-        data['handicappers'].forEach(handicapper => {
-          handicapper['picks'] = _.zip(handicapper['picks_teams'], handicapper['picks_prices'], handicapper['picks_times'])
-          delete handicapper.picks_teams
-          delete handicapper.picks_prices
-          delete handicapper.picks_times
-        })
+        for (let pick of picks) {
+          let card = await scrapeIt({url: base_url + pick['card'], headers: {
+              'Cookie': 'username=falber55%40gmail.com; password=76d432e75612030f35879eed472d39cb',
+              'Accept': '/',
+              'Connection': 'keep-alive'
+            }}, OPTIONS['LEVEL2'])
 
-        return Promise.resolve(data)
+            let type = pick['type']
+            let hc_data = card['data']['hc_data']
+            let price = 0
+            let ids = []
+            let hc_spread = 0
+            let h_spread = ''
+            let hc_ou = 0
+            let h_ou = ''
+
+            if (type == 'SPREAD') {
+              if (hc_data.indexOf('+') > 0)
+                ids.push(hc_data.indexOf('+'))
+              if (hc_data.indexOf('-') > 0)
+                ids.push(hc_data.indexOf('-'))
+              if (hc_data.indexOf('(') > 0)
+                ids.push(hc_data.indexOf('('))
+
+              ids.sort(function(a, b){return a-b});
+
+              if (ids.length > 0) {
+                h_spread = hc_data.substring(0, ids[0]-1)
+                if (stringSimilarity.compareTwoStrings(h_spread, pick['home']) > stringSimilarity.compareTwoStrings(h_spread, pick['away']))
+                  h_spread = pick['home']
+                else
+                  h_spread = pick['away']
+              }
+              if (ids.length > 1) {
+                hc_spread = util.safeToFloat(hc_data.substring(ids[0], ids[1]-1))
+                if (h_spread == pick['away'])
+                  hc_spread = hc_spread * -1
+              }
+            } else if(type = 'OU') {
+              let ou_data = hc_data.split(' ')
+              if (ou_data.length > 0) {
+                h_ou = ou_data[0].toUpperCase()
+              }
+              if (ou_data.length > 1) {
+                hc_ou = util.safeToFloat(ou_data[1])
+              }
+            }
+
+            pick['hc_spread'] = util.safeToFloat(hc_spread)
+            pick['h_spread'] = h_spread.toUpperCase()
+            pick['hc_ou'] = util.safeToFloat(hc_ou)
+            pick['h_ou'] = h_ou
+            pick['site'] = 'sportspicksforum.com'
+            pick['price'] = util.safeToFloat(price)
+            delete pick['card']
+        }
+        return Promise.resolve(picks)
       })
-      // .then(result => {
-      //   let data = result.map(r => {
-      //     let picks = []
-      //     r['data']['picks'].forEach(pick => {
-      //       if (pick['provider'] != '')
-      //         picks.push(pick)
-      //     })
-      //     r['data']['picks'] = picks
-      //     return r['data']
-      //   })
-      //   return Promise.resolve(result.map(r => r['data']))
-      // })
     }
 }
 
