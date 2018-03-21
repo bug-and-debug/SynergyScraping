@@ -4,6 +4,7 @@ const scraperjs = require('scraperjs')
 const cheerio = require('cheerio')
 const request = require('request')
 const curl = require('curlrequest');
+const util = require('./../manager/util')
 
 const OPTIONS = {
   'nba': {
@@ -109,12 +110,12 @@ class Si {
                   away: {
                     city: match['team1_city'],
                     name: match['team1_name'],
-                    total: team1_total_score
+                    total: util.safeToInt(team1_total_score)
                   },
                   home: {
                     city: match['team2_city'],
                     name: match['team2_name'],
-                    total: team2_total_score
+                    total: util.safeToInt(team2_total_score)
                   }
                 }
               } else {

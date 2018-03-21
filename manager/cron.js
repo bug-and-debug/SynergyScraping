@@ -45,49 +45,49 @@ const start = function() {
      let picks = []
 
      //************************ CAPPERTEK ********************************//
-    //  console.log('............ cappertek/nba ................')
-    //  let picks = await cappertek.scrape({platform: 'nba', date: today_cappertek})
-    //  await updatePicks(today, picks)
-    //
-    //  console.log('............ cappertek/ncaab ................')
-    //  picks = await cappertek.scrape({platform: 'ncaab', date: today_cappertek})
-    //  await updatePicks(today, picks)
-    //
-    //  //********************** SPORTSINVESTORCENTRAL ***********************//
-    //  console.log('............ sportsinvestorcentral/nba ................')
-    //  picks = await sportsinvestorcentral.scrape({platform: 'nba'})
-    //  await updatePicks(today, picks)
-    //
-    //  console.log('............ sportsinvestorcentral/ncaab ................')
-    //  picks = await sportsinvestorcentral.scrape({platform: 'ncaab'})
-    //  await updatePicks(today, picks)
-    //
-    // //********************** CAPPERSMONITOR *****************************//
-    //  console.log('............ cappersmonitor/nba ................')
-    //  picks = await cappersmonitor.scrape({platform: 'nba'})
-    //  await updatePicks(today, picks)
-    //
-    //  console.log('............ cappersmonitor/ncaab ................')
-    //  picks = await cappersmonitor.scrape({platform: 'ncaab'})
-    //  await updatePicks(today, picks)
+     console.log('............ cappertek/nba ................')
+     picks = await cappertek.scrape({platform: 'nba', date: today_cappertek})
+     await updatePicks(today, picks)
+
+     console.log('............ cappertek/ncaab ................')
+     picks = await cappertek.scrape({platform: 'ncaab', date: today_cappertek})
+     await updatePicks(today, picks)
+
+     //********************** SPORTSINVESTORCENTRAL ***********************//
+     console.log('............ sportsinvestorcentral/nba ................')
+     picks = await sportsinvestorcentral.scrape({platform: 'nba'})
+     await updatePicks(today, picks)
+
+     console.log('............ sportsinvestorcentral/ncaab ................')
+     picks = await sportsinvestorcentral.scrape({platform: 'ncaab'})
+     await updatePicks(today, picks)
+
+    //********************** CAPPERSMONITOR *****************************//
+     console.log('............ cappersmonitor/nba ................')
+     picks = await cappersmonitor.scrape({platform: 'nba'})
+     await updatePicks(today, picks)
+
+     console.log('............ cappersmonitor/ncaab ................')
+     picks = await cappersmonitor.scrape({platform: 'ncaab'})
+     await updatePicks(today, picks)
 
     //************************ DOCUMENTEDHANDICAPPERS ***********************//
-     // console.log('............ documentedhandicappers/nba ................')
-     // picks = await documentedhandicappers.scrape({platform: 'nba'})
-     // await updatePicks(today, picks)
-     //
-     // console.log('............ documentedhandicappers/ncaab ................')
-     // picks = await documentedhandicappers.scrape({platform: 'ncaab'})
-     // await updatePicks(today, picks)
+     console.log('............ documentedhandicappers/nba ................')
+     picks = await documentedhandicappers.scrape({platform: 'nba'})
+     await updatePicks(today, picks)
 
-     // //************************ SPORTSPICKSFORUM ***********************//
-     //  console.log('............ sportspicksforum/nba ................')
-     //  picks = await sportspicksforum.scrape({platform: 'nba'})
-     //  await updatePicks(today, picks)
-     //
-     //  console.log('............ sportspicksforum/ncaab ................')
-     //  picks = await sportspicksforum.scrape({platform: 'ncaab'})
-     //  await updatePicks(today, picks)
+     console.log('............ documentedhandicappers/ncaab ................')
+     picks = await documentedhandicappers.scrape({platform: 'ncaab'})
+     await updatePicks(today, picks)
+
+     //************************ SPORTSPICKSFORUM ***********************//
+      console.log('............ sportspicksforum/nba ................')
+      picks = await sportspicksforum.scrape({platform: 'nba'})
+      await updatePicks(today, picks)
+
+      console.log('............ sportspicksforum/ncaab ................')
+      picks = await sportspicksforum.scrape({platform: 'ncaab'})
+      await updatePicks(today, picks)
 
       //************************ PRECISIONPICKS ***********************//
        console.log('............ precisionpicks/nba ................')
@@ -160,16 +160,70 @@ const updatePicks = async function(today, picks) {
     console.log('__________ update a pick ____________')
     let home_id = await getTeamFromContext(pick['home'])
     let away_id = await getTeamFromContext(pick['away'])
-    let game_id = await getGame(today, home_id, away_id)
-    if (game_id > 0) { //process pick
+    let spread_id = await getTeamFromContext(pick['h_spread'])
+    //console.log(pick['home'] + ' @@ ' + home_id + ' **** ' + pick['away'] + ' @@ ' + away_id)
+    let game = await getGame(today, home_id, away_id)
+
+    if (game) { //process pick
+      let wl = '--'
+      if (pick['type'] === 'OU') {
+        if (game['home_score'] === null || game['away_score'] === null || game['ou'] === null || pick['h_ou'] === '') {
+          wl = '--'
+        } else {
+          if (game['home_score'] + game['away_score'] > game['ou']) {
+            if (pick['h_ou'] === 'OVER')
+              wl = 'WIN'
+            else
+              wl = 'LOSE'
+          } else {
+            if (pick['h_ou'] === 'UNDER')
+              wl = 'WIN'
+            else
+              wl = 'LOSE'
+          }
+        }
+      } else if (pick['type'] === 'SPREAD') {
+        if (game['home_score'] === null || game['away_score'] === null || game['spread'] === null || pick['h_spread'] === '') {
+          wl = '--'
+        } else {
+          if (game['home_score'] + game['spread'] > game['away_score']) {
+            if (game['home'] === spread_id)
+              wl = 'WIN'
+            else if (game['away'] === spread_id)
+              wl = 'LOSE'
+            else
+              wl = '--'
+          } else {
+            if (game['away'] === spread_id)
+              wl = 'WIN'
+            else if (game['home'] === spread_id)
+              wl = 'LOSE'
+            else
+              wl = '--'
+          }
+        }
+      }
+
       let query = 'SELECT * FROM picks WHERE game_id=? AND site=? AND handicapper=?'
-      let items = await db.query(query, [game_id, pick['site'], pick['handicapper']])
+      let items = await db.query(query, [game['id'], pick['site'], pick['handicapper']])
       if (items.length > 0) { // needs update a pick
         let pick_id = items[0]['id']
         query =  'UPDATE picks SET type=?, hc_spread=?, hc_ou=?, h_spread=?, h_ou=?, units=?, price=? WHERE id=?'
         await db.query(query, [pick['type'], pick['hc_spread'], pick['hc_ou'], pick['h_spread'], pick['h_ou'], pick['units'], pick['price'], pick_id])
       } else { // insert a pick
-        await db.query('INSERT INTO picks SET ?', {game_id: game_id, site: pick['site'], handicapper: pick['handicapper'], type: pick['type'], hc_spread: pick['hc_spread'], hc_ou: pick['hc_ou'], h_spread: pick['h_spread'], h_ou: pick['h_ou'], units: pick['units'], price: pick['price']})
+        await db.query('INSERT INTO picks SET ?', {
+                                                    game_id: game['id'],
+                                                    site: pick['site'],
+                                                    handicapper: pick['handicapper'],
+                                                    type: pick['type'],
+                                                    hc_spread: pick['hc_spread'],
+                                                    hc_ou: pick['hc_ou'],
+                                                    h_spread: pick['h_spread'],
+                                                    h_ou: pick['h_ou'],
+                                                    units: pick['units'],
+                                                    price: pick['price'],
+                                                    wl: wl
+                                                  })
       }
     }
   }
@@ -181,8 +235,12 @@ const getTeamFromContext = async function(context) {
   teams.forEach(team => {
     let rank_name = stringSimilarity.compareTwoStrings(team['name'], context)
     let rank_city = stringSimilarity.compareTwoStrings(team['city'], context)
+    let rank_both = stringSimilarity.compareTwoStrings(team['name'] + ' ' + team['city'], context)
+    let rank_both_inv = stringSimilarity.compareTwoStrings(team['city'] + ' ' + team['name'], context)
     ranks.push({id: team['id'], rank: rank_name})
     ranks.push({id: team['id'], rank: rank_city})
+    ranks.push({id: team['id'], rank: rank_both})
+    ranks.push({id: team['id'], rank: rank_both_inv})
   })
 
   let team_id = 0
@@ -200,9 +258,9 @@ const getGame = async function(date, home_id, away_id) {
   let query = 'SELECT * FROM games WHERE date=? AND home=? AND away=? LIMIT 1'
   let game = await db.query(query, [date, home_id, away_id])
   if (game.length == 0) {
-    return -1
+    return null
   } else {
-    return game[0]['id']
+    return game[0]
   }
 }
 
