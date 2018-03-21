@@ -67,6 +67,14 @@ router.post('/precisionpicks', function(req, res) {
   })
 });
 
+router.post('/h-precisionpicks', function(req, res) {
+  precisionpicks.historical(req.body).then(function(result) {
+    res.send(result);
+  }).catch(function(err) {
+    res.send(err)
+  })
+});
+
 router.post('/vegasinsider', function(req, res) {
   vegasinsider.scrape(req.body).then(function(result) {
     res.send(result);

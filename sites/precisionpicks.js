@@ -55,10 +55,77 @@ const OPTIONS = {
     }
   }
 
+const H_OPTIONS = {
+  LEVEL1: {
+    items: {
+      listItem: ".record-shell",
+      data: {
+        url: {
+          selector: "div.col-sm-6 > a",
+          attr: "href"
+        }
+      }
+    }
+  },
+  LEVEL2: {
+      name: "div.capper-bio > h2",
+      records: {
+        listItem: "tr.record",
+        data: {
+          date: {
+            selector: "td:nth-child(1)"
+          },
+          sport: {
+            selector: "td:nth-child(2)"
+          },
+          home: {
+            selector: "td:nth-child(3)",
+            convert: x => x.split(' vs')[1]
+          },
+          away: {
+            selector: "td:nth-child(3)",
+            convert: x => x.split(' vs')[0]
+          },
+          pick_data: {
+            selector: "td:nth-child(4)",
+            convert: x => x.split(', ')[0]
+          },
+          type: {
+            selector: "td:nth-child(4)",
+            convert: x => {
+              if (x.startsWith('Over') || x.startsWith('Under'))
+                return 'OU'
+              else
+                return 'SPREAD'
+            }
+          },
+          h_spread: {
+            selector: "td:nth-child(4) > div:nth-child(1)",
+            convert: x => {
+              if (x === '')
+                return 'HOME'
+              else
+                return 'AWAY'
+            }
+          },
+          units: {
+            selector: "td:nth-child(4)",
+            convert: x => x.split(', ')[1]
+          },
+          result: {
+            selector: "td:nth-child(5)",
+            convert: x => x.substring(0, x.indexOf('(')-1)
+          }
+        }
+      }
+  }
+}
+
 class PrecisionPicks {
     static async scrape(options) {
+      let platform = options['platform']
       let base_url = 'https://www.precisionpicks.com'
-      let url = 'https://www.precisionpicks.com/nba/'
+      let url = 'https://www.precisionpicks.com/' + platform
 
       return scrapeIt({url: url, headers: {
           'Cookie': 'a=eyJpZCI6IjYwMTI2IiwibG9naW4iOiJmYWxiZXI1NUBnbWFpbC5jb20iLCJwYXNzd29yZCI6Ijc2ZDQzMmU3NTYxMjAzMGYzNTg3OWVlZDQ3MmQzOWNiIn0%3D',
@@ -132,6 +199,59 @@ class PrecisionPicks {
 
         return Promise.resolve(picks)
       })
+    }
+
+    static async historical(options) {
+      let {platform} = options
+      let base_url = 'https://www.precisionpicks.com'
+      let url = 'https://www.precisionpicks.com/' + platform + '/season-overall'
+      return scrapeIt({url: url, headers: {
+          'Cookie': 'a=eyJpZCI6IjYwMTI2IiwibG9naW4iOiJmYWxiZXI1NUBnbWFpbC5jb20iLCJwYXNzd29yZCI6Ijc2ZDQzMmU3NTYxMjAzMGYzNTg3OWVlZDQ3MmQzOWNiIn0%3D',
+          'Accept': '/',
+          'Connection': 'keep-alive'
+        }}, H_OPTIONS['LEVEL1']).then(async ({ data, response }) => {
+          let promises = []
+          data['items'].forEach(item => {
+              promises.push(scrapeIt({url: base_url + item['url'] + 'overall/#records', headers: {
+                  'Cookie': 'a=eyJpZCI6IjYwMTI2IiwibG9naW4iOiJmYWxiZXI1NUBnbWFpbC5jb20iLCJwYXNzd29yZCI6Ijc2ZDQzMmU3NTYxMjAzMGYzNTg3OWVlZDQ3MmQzOWNiIn0%3D',
+                  'Accept': '/',
+                  'Connection': 'keep-alive'
+                }}, H_OPTIONS['LEVEL2']))
+          })
+          return Promise.all(promises)
+        }).then(result => {
+          let data = result.map(r => r['data'])
+
+          data.forEach(handicapper => {
+            handicapper['records'] = handicapper['records'].filter(record => record['sport'] == platform.toUpperCase())
+            handicapper['records'].forEach(record => {
+              let h_spread = ''
+              let hc_spread = 0
+              let h_ou = ''
+              let hc_ou = 0
+
+              let type = record['type']
+              let pick_data = record['pick_data']
+
+              if (type == 'SPREAD') {
+                hc_spread = util.safeToFloat(pick_data.substring(0, pick_data.indexOf('(')).trim())
+                h_spread = record['h_spread'] == 'HOME' ? record['home'] : record['away']
+              } else if(type = 'OU') {
+                h_ou = pick_data.startsWith('Over') ? 'OVER' : 'UNDER'
+                hc_ou = util.safeToFloat(pick_data.split(' ')[1])
+              }
+              let units = util.safeToInt(record['units'].split(' ')[0])
+
+              record['units'] = units
+              record['h_spread'] = h_spread
+              record['hc_spread'] = hc_spread
+              record['h_ou'] = h_ou
+              record['hc_ou'] = hc_ou
+
+            })
+          })
+           return Promise.resolve(data)
+        })
     }
 }
 

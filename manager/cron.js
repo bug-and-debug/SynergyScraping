@@ -4,6 +4,9 @@ const vegasinsider = require('./../sites/vegasinsider')
 const cappertek = require('./../sites/cappertek')
 const sportsinvestorcentral = require('./../sites/sportsinvestorcentral')
 const cappersmonitor = require('./../sites/cappersmonitor')
+const documentedhandicappers = require('./../sites/documentedhandicappers')
+const sportspicksforum = require('./../sites/sportspicksforum')
+const precisionpicks = require('./../sites/precisionpicks')
 const nodeCron = require('node-cron')
 const stringSimilarity = require('string-similarity')
 const config = require('config')
@@ -39,33 +42,61 @@ const start = function() {
      games = await vegasinsider.scrape({platform: 'ncaab', date: today_vi})
      await updateOdds(today, games)
 
+     let picks = []
+
      //************************ CAPPERTEK ********************************//
-     console.log('............ cappertek/nba ................')
-     let picks = await cappertek.scrape({platform: 'nba', date: today_cappertek})
-     await updatePicks(today, picks)
+    //  console.log('............ cappertek/nba ................')
+    //  let picks = await cappertek.scrape({platform: 'nba', date: today_cappertek})
+    //  await updatePicks(today, picks)
+    //
+    //  console.log('............ cappertek/ncaab ................')
+    //  picks = await cappertek.scrape({platform: 'ncaab', date: today_cappertek})
+    //  await updatePicks(today, picks)
+    //
+    //  //********************** SPORTSINVESTORCENTRAL ***********************//
+    //  console.log('............ sportsinvestorcentral/nba ................')
+    //  picks = await sportsinvestorcentral.scrape({platform: 'nba'})
+    //  await updatePicks(today, picks)
+    //
+    //  console.log('............ sportsinvestorcentral/ncaab ................')
+    //  picks = await sportsinvestorcentral.scrape({platform: 'ncaab'})
+    //  await updatePicks(today, picks)
+    //
+    // //********************** CAPPERSMONITOR *****************************//
+    //  console.log('............ cappersmonitor/nba ................')
+    //  picks = await cappersmonitor.scrape({platform: 'nba'})
+    //  await updatePicks(today, picks)
+    //
+    //  console.log('............ cappersmonitor/ncaab ................')
+    //  picks = await cappersmonitor.scrape({platform: 'ncaab'})
+    //  await updatePicks(today, picks)
 
-     console.log('............ cappertek/ncaab ................')
-     picks = await cappertek.scrape({platform: 'ncaab', date: today_cappertek})
-     await updatePicks(today, picks)
+    //************************ DOCUMENTEDHANDICAPPERS ***********************//
+     // console.log('............ documentedhandicappers/nba ................')
+     // picks = await documentedhandicappers.scrape({platform: 'nba'})
+     // await updatePicks(today, picks)
+     //
+     // console.log('............ documentedhandicappers/ncaab ................')
+     // picks = await documentedhandicappers.scrape({platform: 'ncaab'})
+     // await updatePicks(today, picks)
 
-     //********************** SPORTSINVESTORCENTRAL ***********************//
-     console.log('............ sportsinvestorcentral/nba ................')
-     picks = await sportsinvestorcentral.scrape({platform: 'nba'})
-     await updatePicks(today, picks)
+     // //************************ SPORTSPICKSFORUM ***********************//
+     //  console.log('............ sportspicksforum/nba ................')
+     //  picks = await sportspicksforum.scrape({platform: 'nba'})
+     //  await updatePicks(today, picks)
+     //
+     //  console.log('............ sportspicksforum/ncaab ................')
+     //  picks = await sportspicksforum.scrape({platform: 'ncaab'})
+     //  await updatePicks(today, picks)
 
-     console.log('............ sportsinvestorcentral/ncaab ................')
-     picks = await sportsinvestorcentral.scrape({platform: 'ncaab'})
-     await updatePicks(today, picks)
+      //************************ PRECISIONPICKS ***********************//
+       console.log('............ precisionpicks/nba ................')
+       picks = await precisionpicks.scrape({platform: 'nba'})
+       await updatePicks(today, picks)
 
-    //********************** CAPPERSMONITOR *****************************//
-     console.log('............ cappersmonitor/nba ................')
-     picks = await cappersmonitor.scrape({platform: 'nba'})
-     await updatePicks(today, picks)
-
-     console.log('............ cappersmonitor/ncaab ................')
-     picks = await cappersmonitor.scrape({platform: 'ncaab'})
-     await updatePicks(today, picks)
-
+       console.log('............ precisionpicks/ncaab ................')
+       picks = await precisionpicks.scrape({platform: 'ncaab'})
+       await updatePicks(today, picks)
 
    }, config.get('cron.interval'))
 }
