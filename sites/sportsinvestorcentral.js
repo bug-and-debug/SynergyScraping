@@ -87,6 +87,56 @@ const OPTIONS = {
       pick: "td[colspan=4] > font[size=4]"
     }
   }
+const H_OPTIONS = {
+  LEVEL1: {
+    items: {
+      listItem: "table[cellpadding=5] > tr > td",
+      data: {
+        url: {
+          selector: "strong > a",
+          attr: "href"
+        }
+      }
+    }
+  },
+  LEVEL2: {
+    name: "h2",
+    records: {
+      listItem: "table[cellspacing=5] > tr > td > table[cellspacing=1] > tr[bgcolor='#ffffff'], tr[bgcolor='#dadada']",
+      data: {
+        date: {
+          selector: "td:nth-child(1)"
+        },
+        sport: {
+          selector: "td:nth-child(2)"
+        },
+        home: {
+          selector: "td:nth-child(3)",
+          convert: x => x.split(' @ ')[1] !== undefined ? x.split(' @ ')[1] : ''
+        },
+        away: {
+          selector: "td:nth-child(3)",
+          convert: x => x.split(' @ ')[0] !== undefined ? x.split(' @ ')[0] : ''
+        },
+        type: {
+          selector: "td:nth-child(4)",
+          convert: x => x.startsWith('Over') || x.startsWith('Under') ? 'OU' : 'SPREAD'
+        },
+        units: {
+          selector: "td:nth-child(4) > span",
+          convert: x => x.split(' ')[0].substring(1)
+        },
+        pick_data: {
+          selector: "td:nth-child(4)"
+        },
+        result: {
+          selector: "td:nth-child(5)"
+        }
+      }
+    }
+  }
+}
+
 
 class SportsInvestorCentral {
     static async scrape(options) {
@@ -196,6 +246,81 @@ class SportsInvestorCentral {
       }
 
       return Promise.resolve(picks)
+    }
+
+    static async historical(options) {
+
+      let platform = options['platform'].toUpperCase()
+      let base_url = 'https://www.sportsinvestorcentral.com'
+      let url = 'https://www.sportsinvestorcentral.com/sports-handicappers.php'
+      return scrapeIt({url: url, headers: {
+          'Cookie': 'username=falber55; password=76d432e75612030f35879eed472d39cb',
+          'Accept': '/',
+          'Connection': 'keep-alive'
+        }}, H_OPTIONS['LEVEL1']).then(async ({ data, response }) => {
+          data = (data['items']).map(item => item['url']).filter(url => url !== '')
+          let promises = []
+          data.forEach(item => {
+              promises.push(scrapeIt({url: base_url + item + '&view=last-year', headers: {
+                  'Cookie': 'username=falber55; password=76d432e75612030f35879eed472d39cb',
+                  'Accept': '/',
+                  'Connection': 'keep-alive'
+                }}, H_OPTIONS['LEVEL2']))
+          })
+          return Promise.all(promises)
+        }).then(async result => {
+          let data = result.map(item => item['data'])
+          data.forEach(handicapper => {
+            handicapper['records'] = handicapper['records'].filter(record => record['sport'] === platform.toUpperCase())
+            handicapper['records'].forEach(record => {
+              let hc_data = record['pick_data']
+              let ids = []
+              let hc_spread = 0
+              let h_spread = ''
+              let hc_ou = 0
+              let h_ou = ''
+
+              if (record['type'] == 'SPREAD') {
+                if (hc_data.indexOf('+') > 0)
+                  ids.push(hc_data.indexOf('+'))
+                if (hc_data.indexOf('-') > 0)
+                  ids.push(hc_data.indexOf('-'))
+                if (hc_data.indexOf('(') > 0)
+                  ids.push(hc_data.indexOf('('))
+
+                ids.sort(function(a, b){return a-b});
+
+                if (ids.length > 0) {
+                  h_spread = hc_data.substring(0, ids[0]-1)
+                  if (stringSimilarity.compareTwoStrings(h_spread, record['home']) >= stringSimilarity.compareTwoStrings(h_spread, record['away']))
+                    h_spread = record['home']
+                  else
+                    h_spread = record['away']
+                }
+                if (ids.length > 1) {
+                  hc_spread = util.safeToFloat(hc_data.substring(ids[0], ids[1]-1))
+                  if (h_spread == record['away'])
+                    hc_spread = hc_spread * -1
+                }
+              } else if(record['type'] = 'OU') {
+                let ou_data = hc_data.split(' ')
+                if (ou_data.length > 0) {
+                  h_ou = ou_data[0].toUpperCase()
+                }
+                if (ou_data.length > 1) {
+                  hc_ou = util.safeToFloat(ou_data[1])
+                }
+              }
+
+              record['hc_spread'] = hc_spread
+              record['h_spread'] = h_spread
+              record['hc_ou'] = hc_ou
+              record['h_ou'] = h_ou
+              delete record['pick_data']
+            })
+          })
+          return Promise.resolve(data)
+        })
     }
 }
 

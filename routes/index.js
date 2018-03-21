@@ -43,6 +43,14 @@ router.post('/sportsinvestorcentral', function(req, res) {
   })
 });
 
+router.post('/h-sportsinvestorcentral', function(req, res) {
+  sportsinvestorcentral.historical(req.body).then(function(result) {
+    res.send(result);
+  }).catch(function(err) {
+    res.send(err)
+  })
+});
+
 router.post('/cappertek', function(req, res) {
   cappertek.scrape(req.body).then(function(result) {
     res.send(result);
