@@ -100,7 +100,10 @@ const H_OPTIONS = {
     }
   },
   LEVEL2: {
-    name: "h2",
+    name: {
+      selector: "h2",
+      eq: 0
+    },
     records: {
       listItem: "table[cellspacing=5] > tr > td > table[cellspacing=1] > tr[bgcolor='#ffffff'], tr[bgcolor='#dadada']",
       data: {

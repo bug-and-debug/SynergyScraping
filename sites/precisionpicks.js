@@ -247,7 +247,7 @@ class PrecisionPicks {
               record['hc_spread'] = hc_spread
               record['h_ou'] = h_ou
               record['hc_ou'] = hc_ou
-
+              delete record['pick_data']
             })
           })
            return Promise.resolve(data)

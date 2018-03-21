@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon node app.js"
+    "start": "nodemon node app.js",
+    "historical": "node ./manager/historical.js"
   },
   "dependencies": {
     "async": "^2.6.0",
