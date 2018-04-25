@@ -15,6 +15,12 @@ util.truncateTable('historical').then(async result => {
   console.log('.............. precisionpicks.com / ncaab .................')
   handicappers = await precisionpicks.historical({platform: 'ncaab'})
   await updateHandicapperPicks(handicappers, 'precisionpicks.com')
+  console.log('.............. precisionpicks.com / nfl .................')
+  handicappers = await precisionpicks.historical({platform: 'nfl'})
+  await updateHandicapperPicks(handicappers, 'precisionpicks.com')
+  console.log('.............. precisionpicks.com / ncaaf .................')
+  handicappers = await precisionpicks.historical({platform: 'ncaaf'})
+  await updateHandicapperPicks(handicappers, 'precisionpicks.com')
 
   //********************* SPORTSINVESTORCENTRAL *******************//
   console.log('.............. sportsinvestorcentral.com / nba ...........')
@@ -22,6 +28,12 @@ util.truncateTable('historical').then(async result => {
   await updateHandicapperPicks(handicappers, 'sportsinvestorcentral.com')
   console.log('.............. sportsinvestorcentral.com / ncaab ...........')
   handicappers = await sportsinvestorcentral.historical({platform: 'ncaab'})
+  await updateHandicapperPicks(handicappers, 'sportsinvestorcentral.com')
+  console.log('.............. sportsinvestorcentral.com / nfl ...........')
+  handicappers = await sportsinvestorcentral.historical({platform: 'nfl'})
+  await updateHandicapperPicks(handicappers, 'sportsinvestorcentral.com')
+  console.log('.............. sportsinvestorcentral.com / ncaaf ...........')
+  handicappers = await sportsinvestorcentral.historical({platform: 'ncaaf'})
   await updateHandicapperPicks(handicappers, 'sportsinvestorcentral.com')
 
   process.exit(0)
