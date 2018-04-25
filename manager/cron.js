@@ -142,7 +142,7 @@ const updateOdds = async function(today, games) {
     console.log('___________ update an odd __________')
     /* match */
     let home_id = await getTeamFromContext(game['home']['name'])
-    let away_id = await await getTeamFromContext(game['away']['name'])
+    let away_id = await getTeamFromContext(game['away']['name'])
 
     query = 'SELECT * FROM games WHERE date=? AND home=? AND away=?'
     let match = await db.query(query, [today, home_id, away_id])
