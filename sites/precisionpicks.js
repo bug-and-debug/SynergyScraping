@@ -247,6 +247,7 @@ class PrecisionPicks {
               record['hc_spread'] = hc_spread
               record['h_ou'] = h_ou
               record['hc_ou'] = hc_ou
+              record['date'] = util.convertToDateFormat(record['date'])
               delete record['pick_data']
             })
           })

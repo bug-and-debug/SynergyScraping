@@ -8,5 +8,6 @@
       "password":"",
       "database": "synergy",
       "port": 3306
-  }
+  },
+  "timezone": "America/New_York"
 }

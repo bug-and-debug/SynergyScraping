@@ -8,6 +8,7 @@ const sportspicksforum = require('./../sites/sportspicksforum')
 const precisionpicks = require('./../sites/precisionpicks')
 const vegasinsider = require('./../sites/vegasinsider')
 const test = require('./../sites/test')
+const analysis = require('./../manager/analysis')
 
 var router = express.Router();
 
@@ -98,5 +99,7 @@ router.post('/test', function(req, res) {
     res.send(err)
   })
 });
+
+router.use('/analysis', analysis)
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const db=require('./../dbconnection')
+const config = require('config')
 
 const truncateTable = function(name) {
   return db.query('TRUNCATE TABLE ' + name).then((result, err) => {
@@ -24,8 +25,22 @@ const safeToInt = function(val) {
   return result
 }
 
+const convertToDateFormat = function(str) {
+   return str.split('/')[2] + '-' + ('0' + str.split('/')[0]).slice(-2) + '-' + ('0' + str.split('/')[1]).slice(-2)
+}
+
+const getDiffDate = day => {
+  var d = new Date();
+  d.setDate(d.getDate() - day);
+  return convertToDateFormat(d.toLocaleString('en-US', {
+    timeZone: config.get('timezone')
+  }).split(',')[0]);
+}
+
 module.exports = {
   safeToInt,
   safeToFloat,
-  truncateTable
+  truncateTable,
+  convertToDateFormat,
+  getDiffDate,
 }

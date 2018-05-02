@@ -319,6 +319,7 @@ class SportsInvestorCentral {
               record['h_spread'] = h_spread
               record['hc_ou'] = hc_ou
               record['h_ou'] = h_ou
+              //record['date'] = util.convertToDateFormat(record['date'])
               delete record['pick_data']
             })
           })
